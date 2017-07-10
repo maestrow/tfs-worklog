@@ -1,0 +1,10 @@
+.paket
+.vscode
+packages
+bin
+obj
+/WorkLog/settings.xml
+
+/json/
+
+.suo
