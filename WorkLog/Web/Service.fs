@@ -1,9 +1,11 @@
-module Domain.UserInput
+module Web.Service
 
 open System
 open System.Text.RegularExpressions
 open Suave.Utils
-open Extensions
+open Utils.SuaveHelpers
+
+module Tpl = Logic.TfsUrlTemplates
 
 module private Internals =
   
@@ -13,22 +15,18 @@ module private Internals =
     let ymd = ["year"; "month"; "day"] |> List.map (fun groupName -> m.Groups.Item(groupName).Value |> int)
     DateTime (ymd.[0], ymd.[1], ymd.[2])
   
-  let getParam (q: (string * string option) list) parser name defaultValue = 
-    let value = 
-      match q ^^ name with
-      | Choice1Of2 v -> parser v
-      | Choice2Of2 _ -> defaultValue
-    value
-
 open Internals
 
-type UserInput = { dateFrom: DateTime; dateTo: DateTime } with
-  
-  member this.ToString = 
-    let format = "dd.mm.yyyy"
-    sprintf "С %s по %s." (this.dateFrom.ToString format) (this.dateTo.ToString format)
-  
-  static member FromParameters (q: (string * string option) list) = 
+
+
+
+
+
+
+
+
+
+let FromParameters (q: (string * string option) list) = 
     let p = getParam q
     let (dateFromDefault,dateToDefault) = DateTime.Now.GetMonthBoundaries ()
     { 

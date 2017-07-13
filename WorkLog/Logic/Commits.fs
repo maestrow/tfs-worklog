@@ -6,41 +6,32 @@ open System.Net
 open System.Reflection
 open System.Text.RegularExpressions
 
-open Suave
+//open Suave
 open FSharp.Data
 
-open Domain.UserInput
+open Utils.Reflection
 open Domain.Settings
 open Domain.Tfs
-open ViewModels
+open Logic.TfsUrlTemplates
+open Logic.TfsRequest
+open Web.ViewModels
+
+
+type RepoParams = {
+  collection: string
+  project: string
+  repoId: string 
+}
 
 module private Implementation = 
 
-  let settings =
-    let root = Path.GetDirectoryName (Assembly.GetExecutingAssembly()).Location
-    let xml = Path.Combine (root, "settings.xml") |> File.ReadAllText
-    Settings.Parse xml
-
-  let credentials = 
-      let c = settings.NetworkCredential
-      NetworkCredential(c.Login, c.Password, c.Domain)
-
-  let addCredentials (req: HttpWebRequest) = 
-      req.Credentials <- credentials
-      req
-
-  let request url = Http.RequestString (url, customizeHttpRequest = addCredentials)
-
-  let reqCommitDetails commitId = 
-    let url = sprintf "https://tfsdsr.norbit.ru/TradingSystems/_apis/git/repositories/50c80d8d-4a80-415b-90a8-5659a6693aa2/commits/%s" commitId
-    request url
-
-  let reqCommits (userInput: UserInput) = 
-    let format = "yyyy-MM-dd"
-    let fromDate = userInput.dateFrom.ToString format
-    let toDate = userInput.dateTo.ToString format
-    let url = sprintf "https://tfsdsr.norbit.ru/TradingSystems/_apis/git/repositories/50c80d8d-4a80-415b-90a8-5659a6693aa2/commits?committer=shmelev&fromDate=%s&toDate=%s" fromDate toDate
-    request url
+  let getUrlTpl tplBldr (repoParams: RepoParams) = 
+    tplBldr 
+      settings.ServiceUrl.Schema 
+      settings.ServiceUrl.Host
+      repoParams.collection
+      repoParams.project
+      repoParams.repoId
 
   let getIssueIdFromComment comment =
     let rx = Regex (@"\n\nRelated Work Items: \#(\d+)$")
@@ -73,22 +64,29 @@ module private Implementation =
 
 open Implementation
 
-let getCommits (userInput: UserInput) =
+let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
+    
   let commits = 
-    reqCommits userInput
+    commitsParams
+    |> (getUrlTpl Tpl.commits repoParams)
+    |> request
     |> TfsCommits.Parse
     |> (fun root -> root.Value)
     |> List.ofArray
     |> List.groupBy (fun c -> c.CommentTruncated.IsSome && c.CommentTruncated.Value)
     |> dict
 
-  let list1 = 
+  let notTruncated = 
     commits.[false]
     |> List.map getCommitInfoFromShortJsonObj
   
-  let list2 = 
-    commits.[true]
-    |> List.map (fun c -> reqCommitDetails c.CommitId |> TfsCommitDetails.Parse)
-    |> List.map getCommitInfoFromDetailedJsonObj
+  let truncated = 
+    let tpl = getUrlTpl Tpl.commitDetails repoParams
+    let mapFn = 
+      (fun c -> tpl c.CommitId)
+      >> request 
+      >> TfsCommitDetails.Parse
+      >> getCommitInfoFromDetailedJsonObj
+    commits.[true] |> List.map mapFn
 
-  [list1; list2] |> List.concat
+  [notTruncated; truncated] |> List.concat

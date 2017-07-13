@@ -11,8 +11,8 @@ open Suave.Utils
 open Suave.DotLiquid
 open DotLiquid
 
-open ViewModels
-open Domain.UserInput
+open Web
+open Web.ViewModels
 open TestData
 
 setTemplatesDir (__SOURCE_DIRECTORY__ + "/Views")

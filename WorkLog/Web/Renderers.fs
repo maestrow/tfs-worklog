@@ -1,4 +1,4 @@
-module Renderers
+module Web.Renderers
 
 open System.IO
 open DotLiquid
@@ -21,7 +21,7 @@ let main (data: Activities) =
   let chooser = function 
     | Commit commit -> Some commit 
     | _ -> None
-  let renderer = renderPageFile (Path.Combine (getRoot (), "index2.liquid"))
+  let renderer = renderPageFile (Path.Combine (getRoot (), "index.liquid"))
   let model = 
     data
     |> List.choose chooser

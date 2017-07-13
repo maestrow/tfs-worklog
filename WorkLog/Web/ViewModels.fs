@@ -1,4 +1,4 @@
-module ViewModels
+module Web.ViewModels
 
 open System
 
