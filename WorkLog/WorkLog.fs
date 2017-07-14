@@ -11,12 +11,9 @@ open Suave.Utils
 open Suave.DotLiquid
 open DotLiquid
 
-open Web
-open Web.ViewModels
-open TestData
+open Web.Service
 
 setTemplatesDir (__SOURCE_DIRECTORY__ + "/Views")
-Renderers.setTemplatesDir (__SOURCE_DIRECTORY__ + "/Views")
 
 let render str = 
   fun ctx ->
@@ -25,20 +22,11 @@ let render str =
       return! OK rendered ctx
     }
 
-let commitsAction (request: HttpRequest) = 
-  request.query
-  |> UserInput.FromParameters
-  |> Logic.Commits.getCommits 
-  |> List.map (fun ci -> Commit ci)
-  |> Renderers.main
-  |> Async.RunSynchronously
-  |> OK
-
 let app : WebPart =
   choose [ 
     path "/" >=> OK "Welcome!"
-    path "/commits" >=> request commitsAction
-    path "/test1" >=> render (Renderers.main (generateActivities()))
+    path "/commits" >=> request getParamsFromQuery
+    path "/test1" >=> render (testAction1())
   ]
 
 

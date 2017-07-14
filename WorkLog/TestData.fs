@@ -3,7 +3,7 @@ module TestData
 open System
 open System.IO
 open System.Text.RegularExpressions
-open ViewModels
+open Web.ViewModels
 open Extensions
 open TestDataGenerators
 

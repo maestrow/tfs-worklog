@@ -5,26 +5,26 @@ open DotLiquid
 open Suave.DotLiquid
 open ViewModels
 
-let mutable private templatesDir : string option = None
+module private Internals = 
+
+  let mutable templatesDir : string option = None
+  
+  let getRoot () =
+    if templatesDir.IsNone then failwith "The templates folder is not specified. Specify one with setTemplatesDir."
+    templatesDir.Value
+
+open Internals
 
 let setTemplatesDir dir =
   templatesDir <- Some dir
 
-let getRoot () =
-  if templatesDir.IsNone then failwith "The templates folder is not specified. Specify one with setTemplatesDir."
-  templatesDir.Value
 
 let commitInfo (data: CommitInfo) =
   renderPageFile (Path.Combine (getRoot (), "commitInfo.liquid")) data
 
 let main (data: Activities) = 
-  let chooser = function 
-    | Commit commit -> Some commit 
-    | _ -> None
-  let renderer = renderPageFile (Path.Combine (getRoot (), "index.liquid"))
-  let model = 
-    data
-    |> List.choose chooser
-    |> List.map (commitInfo >> Async.RunSynchronously)
-  model |> renderer
+  data
+  |> List.choose (function | Commit commit -> Some commit | _ -> None)
+  |> List.map (commitInfo >> Async.RunSynchronously)
+  |> renderPageFile (Path.Combine (getRoot (), "index.liquid"))
 

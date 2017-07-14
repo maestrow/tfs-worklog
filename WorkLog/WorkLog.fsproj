@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Name>WorkLog</Name>
@@ -39,22 +39,21 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DotLiquid.FSharp.fs" />
     <Compile Include="Utils/Reflection.fs" />
     <Compile Include="Utils/TestDataGenerators.fs" />
     <Compile Include="Utils/WebUtils.fs" />
     <Compile Include="Utils/SuaveHelpers.fs" />
+    <Compile Include="Utils/Deserializer.fs" />
     <Compile Include="Extensions.fs" />
     <Compile Include="Domain/Settings.fs" />
-    <Compile Include="Domain/UserInput.fs" />
     <Compile Include="Domain/Tfs.fs" />
     <Compile Include="Logic/TfsRequest.fs" />
     <Compile Include="Logic/TfsUrlTemplates.fs" />
-    <Compile Include="Logic/Commits.fs" />
     <Compile Include="Web/ViewModels.fs" />
+    <Compile Include="TestData.fs" />
+    <Compile Include="Logic/Commits.fs" />
     <Compile Include="Web/Renderers.fs" />
     <Compile Include="Web/Service.fs" />
-    <Compile Include="TestData.fs" />
     <Compile Include="WorkLog.fs" />
     <None Include="App.config" />
     <None Include="settings.xml">

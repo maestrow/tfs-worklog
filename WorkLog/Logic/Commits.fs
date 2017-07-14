@@ -81,9 +81,9 @@ let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
     |> List.map getCommitInfoFromShortJsonObj
   
   let truncated = 
-    let tpl = getUrlTpl Tpl.commitDetails repoParams
+    let urlTpl = getUrlTpl Tpl.commitDetails repoParams
     let mapFn = 
-      (fun c -> tpl c.CommitId)
+      (fun (c: TfsCommits.Value) -> urlTpl c.CommitId)
       >> request 
       >> TfsCommitDetails.Parse
       >> getCommitInfoFromDetailedJsonObj
