@@ -14,6 +14,7 @@ open DotLiquid
 open Web.Service
 
 setTemplatesDir (__SOURCE_DIRECTORY__ + "/Views")
+Web.Renderers.setTemplatesDir (__SOURCE_DIRECTORY__ + "/Views")
 
 let render str = 
   fun ctx ->

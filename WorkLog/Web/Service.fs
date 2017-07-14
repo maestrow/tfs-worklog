@@ -12,14 +12,11 @@ open Utils.SuaveHelpers
 
 open Logic.Commits
 open Logic.TfsUrlTemplates
-open Web.Renderers
 open Web.ViewModels
 
 open TestData
 
 module D = Utils.Deserializer
-
-Renderers.setTemplatesDir (__SOURCE_DIRECTORY__ + "/Views")
 
 module private Internals =
   // ToDo: Unused function - the old one dates deserializer
