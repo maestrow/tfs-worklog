@@ -25,7 +25,7 @@ let render str =
 
 let app : WebPart =
   choose [ 
-    path "/" >=> OK "Welcome!"
+    path "/" >=> ("welcome.liquid" |> flip Web.Renderers.render () |> render)
     path "/commits" >=> request getParamsFromQuery
     path "/test1" >=> render (testAction1())
   ]

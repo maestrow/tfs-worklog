@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Document</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .field {
+      padding: 5px;
+    }
+    .field label {
+      display: inline-block;
+      width: 150px;
+    }
+  </style>
+</head>
+  
+<body>
+  <h1>Welcome</h1>
+  <div>
+    <form action="/commits">
+      <fieldset>
+        <legend>Repo params</legend>
+        <div class="field">
+          <label for="collection">collection</label>
+          <input name="collection" type="text" value="">
+        </div>
+        <div class="field">
+          <label for="project">project</label>
+          <input name="project" type="text" value="">
+        </div>
+        <div class="field">
+          <label for="repoId">repoId</label>
+          <input name="repoId" type="text" value="">
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Query</legend>
+        <div class="field">
+          <label for="committer">committer</label>
+          <input name="committer" type="text" value="">
+        </div>
+        <div class="field">
+          <label for="itemPath">itemPath</label>
+          <input name="itemPath" type="text" value="">
+        </div>
+        <div class="field">
+          <label for="fromDate">fromDate</label>
+          <input name="fromDate" type="text" value="">
+        </div>
+        <div class="field">
+          <label for="toDate">toDate</label>
+          <input name="toDate" type="text" value="">
+        </div>
+      </fieldset>
+      <input type="submit"/>
+    </form>
+  </div>
+</body>
+</html>

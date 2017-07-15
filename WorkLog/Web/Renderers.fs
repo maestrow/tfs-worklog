@@ -13,18 +13,21 @@ module private Internals =
     if templatesDir.IsNone then failwith "The templates folder is not specified. Specify one with setTemplatesDir."
     templatesDir.Value
 
+  let getFullPath relPath = Path.Combine (getRoot (), relPath)
+
 open Internals
 
 let setTemplatesDir dir =
   templatesDir <- Some dir
 
+let render relPath data = renderPageFile (getFullPath relPath) data
 
 let commitInfo (data: CommitInfo) =
-  renderPageFile (Path.Combine (getRoot (), "commitInfo.liquid")) data
+  render "commitInfo.liquid" data
 
 let main (data: Activities) = 
   data
   |> List.choose (function | Commit commit -> Some commit | _ -> None)
   |> List.map (commitInfo >> Async.RunSynchronously)
-  |> renderPageFile (Path.Combine (getRoot (), "index.liquid"))
+  |> render "commits.liquid"
 
