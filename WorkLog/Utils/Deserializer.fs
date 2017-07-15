@@ -58,12 +58,13 @@ let private optionDecor (dFac: DeserializerFactory) (d: IDictionary<Type, string
 let fromString : DeserializerFactory = optionDecor deserialize
 
 let private createRecordFormQuery (deserializer: Deserializer) (q: QueryParams) (t: Type) : Choice<obj, string> = 
-  let recordFields = FSharpType.GetRecordFields t
+  let getValueOrEmpty key = 
+    if q.ContainsKey(key) && q.[key].IsSome then q.[key].Value else String.Empty
   let fieldsResult = 
-    recordFields
+    FSharpType.GetRecordFields t
     |> List.ofArray
-    |> List.filter (fun i -> q.ContainsKey(i.Name) && q.[i.Name].IsSome)
-    |> List.map (fun i -> i.Name, deserializer i.PropertyType q.[i.Name].Value)
+    //|> List.filter (fun i -> q.ContainsKey(i.Name) && q.[i.Name].IsSome)
+    |> List.map (fun i -> i.Name, deserializer i.PropertyType (getValueOrEmpty i.Name))
   let error = 
     fieldsResult
     |> List.filter (
