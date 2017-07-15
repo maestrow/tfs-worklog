@@ -46,10 +46,11 @@ module private Implementation =
   let getCommitInfoFromShortJsonObj (jsonObj: TfsCommits.Value) =
     let issueId = getIssueIdFromComment jsonObj.Comment
     { 
-      CommitInfo.id = jsonObj.CommitId; 
-      date = jsonObj.Committer.Date; 
-      issueId = issueId; 
-      message = jsonObj.Comment; 
+      CommitInfo.id = jsonObj.CommitId 
+      date = jsonObj.Committer.Date 
+      issueUrl = "http://example.com"
+      issueId = issueId 
+      message = jsonObj.Comment 
       url = jsonObj.Url 
     }
 
@@ -57,12 +58,19 @@ module private Implementation =
   let getCommitInfoFromDetailedJsonObj (jsonObj: TfsCommitDetails.Root) = 
     let issueId = getIssueIdFromComment jsonObj.Comment
     { 
-      CommitInfo.id = jsonObj.CommitId; 
-      date = jsonObj.Committer.Date; 
-      issueId = issueId; 
-      message = jsonObj.Comment; 
+      CommitInfo.id = jsonObj.CommitId 
+      date = jsonObj.Committer.Date 
+      issueUrl = "http://example.com"
+      issueId = issueId 
+      message = jsonObj.Comment 
       url = jsonObj.Url 
     }
+
+  let rxTrimMsg = Regex "Related Work Items: #\d+$" 
+
+  let trimMessage (msg: string) = rxTrimMsg.Replace(msg, String.Empty)
+
+  let postProcess (ci: CommitInfo) : CommitInfo = { ci with message = trimMessage ci.message }
    
 open Implementation
 
@@ -74,10 +82,10 @@ let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
   
   let commits = 
     commitsParams
-    |> (getUrlTpl Tpl.commits repoParams)
+    |> getUrlTpl Tpl.commits repoParams
     |> request
     |> TfsCommits.Parse
-    |> (fun root -> root.Value)
+    |> fun root -> root.Value
     |> List.ofArray
     |> List.groupBy (fun c -> c.CommentTruncated.IsSome && c.CommentTruncated.Value)
     |> dict
@@ -89,10 +97,13 @@ let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
   let truncated = 
     
     let mapFn = 
-      (fun (c: TfsCommits.Value) -> c.CommitId)
+      fun (c: TfsCommits.Value) -> c.CommitId
       >> commitDetailsCache getCommitDetails
       >> TfsCommitDetails.Parse
       >> getCommitInfoFromDetailedJsonObj
     commits.[true] |> List.map mapFn
 
-  [notTruncated; truncated] |> List.concat
+  [notTruncated; truncated] 
+  |> List.concat
+  |> List.map postProcess
+  |> List.sortBy (fun c -> c.date)

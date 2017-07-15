@@ -13,6 +13,7 @@ module Generators =
     { 
       id = id
       date = date
+      issueUrl = "http://example.com"
       issueId = issueId
       message = message
       url = CommitInfo.GetUrl id

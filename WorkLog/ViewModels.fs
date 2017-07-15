@@ -10,6 +10,7 @@ and Activity =
 and CommitInfo = { 
   id: string
   date: DateTime 
+  issueUrl: string
   issueId: int
   message: string
   url: string 
