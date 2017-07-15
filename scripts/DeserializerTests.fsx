@@ -17,16 +17,24 @@ type CommitsParams = {
   toDate: DateTime option
 } 
 
-let q1 = 
+let r1 = 
   [
     "collection", "collectionValue"
-    "project", "Value"
-    //"repoId", "Value"
+    "project", "projectValue"
+    "repoId", "repoIdValue"
   ]
-  |> List.map (fun (k, v) -> k, Some v)
-  |> dict
 
+let c1 = 
+  [
+    "committer", "John Doe"
+    "itemPath", null
+    "fromDate", "2017-06-01"
+    "toDate", "2017-06-30"
+  ]
+
+let inline (~~) l = l |> List.map (fun (k, v) -> k, Some v) |> dict
 let d = D.deserializers |> dict |> D.fromString
-let result = D.createObjFormQuery d q1 typeof<RepoParams>
+
+let result = D.createObjFormQuery d ~~c1 typeof<CommitsParams>
 
 printfn "%A" result

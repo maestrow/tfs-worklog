@@ -46,6 +46,11 @@ let private deserialize (d: IDictionary<Type, string -> obj>) (resultType: Type)
   else
     Choice2Of2 (sprintf "There is no registered deserializer for type %A" resultType)
 
+let private makeOpt (v: obj) = 
+  let optTypeDef = typedefof<option<_>>
+  let optType = optTypeDef.MakeGenericType([|v.GetType()|])
+  Activator.CreateInstance(optType, v)
+
 let private optionDecor (dFac: DeserializerFactory) (d: IDictionary<Type, string -> obj>) (resultType: Type) (str: string) : Choice<obj, string> =  
   let isOpt = isOption resultType
   if isOpt && String.IsNullOrEmpty(str) then
@@ -53,7 +58,7 @@ let private optionDecor (dFac: DeserializerFactory) (d: IDictionary<Type, string
   else
     let t = if isOpt then resultType.GetGenericArguments().[0] else resultType
     dFac d t str
-    |> Choice.map (fun o -> if isOpt then o |> Some |> box else o)
+    |> Choice.map (fun o -> if isOpt then o |> makeOpt else o)
 
 let fromString : DeserializerFactory = optionDecor deserialize
 
