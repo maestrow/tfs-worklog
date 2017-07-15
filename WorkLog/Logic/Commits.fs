@@ -25,6 +25,8 @@ type RepoParams = {
 
 module private Implementation = 
 
+  let commitDetailsCache = Utils.StringCache.initCache "cache"
+
   let getUrlTpl tplBldr (repoParams: RepoParams) = 
     tplBldr 
       settings.ServiceUrl.Schema 
@@ -61,11 +63,15 @@ module private Implementation =
       message = jsonObj.Comment; 
       url = jsonObj.Url 
     }
-
+   
 open Implementation
 
 let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
-    
+  let getCommitDetails commitId = 
+    commitId
+    |> getUrlTpl Tpl.commitDetails repoParams
+    |> request
+  
   let commits = 
     commitsParams
     |> (getUrlTpl Tpl.commits repoParams)
@@ -81,10 +87,10 @@ let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
     |> List.map getCommitInfoFromShortJsonObj
   
   let truncated = 
-    let urlTpl = getUrlTpl Tpl.commitDetails repoParams
+    
     let mapFn = 
-      (fun (c: TfsCommits.Value) -> urlTpl c.CommitId)
-      >> request 
+      (fun (c: TfsCommits.Value) -> c.CommitId)
+      >> commitDetailsCache getCommitDetails
       >> TfsCommitDetails.Parse
       >> getCommitInfoFromDetailedJsonObj
     commits.[true] |> List.map mapFn
