@@ -39,6 +39,7 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="../paket-files/haf/YoLo/YoLo.fs" />
     <Compile Include="Utils/Reflection.fs" />
     <Compile Include="Utils/TestDataGenerators.fs" />
     <Compile Include="Utils/WebUtils.fs" />

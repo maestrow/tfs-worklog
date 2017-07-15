@@ -3,19 +3,20 @@ module Utils.Deserializer
 open System
 open System.Collections.Generic
 open FSharp.Reflection
+open YoLo
 
 type QueryParams = IDictionary<string, string option>
 type Deserializer = Type -> string -> Choice<obj, string>
-
+type DeserializerFactory = IDictionary<Type, string -> obj> -> Type -> string -> Choice<obj, string>
 
 module private Internals = 
+  let isOption (t: Type) = t.IsGenericType && t.GetGenericTypeDefinition() = typedefof<option<_>>
+
   let applyDeserializer (d: string -> obj) (str: string) : Choice<obj, string> = 
     try
       str |> d |> Choice1Of2
     with
       | _ as ex -> Choice2Of2 ex.Message
-
-  let isOption (t: Type) = t.IsGenericType && t.GetGenericTypeDefinition() = typedefof<option<_>>
 
   let get1Of2 = function
     | Choice1Of2 v -> v
@@ -37,21 +38,29 @@ let deserializers = [
   typeof<int>, fun i -> box (int i)
 ]
 
-
-let fromString (d: IDictionary<Type, string -> obj>) (resultType: Type) (str: string) : Choice<obj, string> = 
-  let isOpt = isOption resultType
-  let t = if isOpt then resultType.GetGenericArguments().[0] else resultType
-
-  if d.ContainsKey(t) then 
-    match applyDeserializer d.[t] str with
-    | Choice1Of2 o -> Choice1Of2 (if isOpt then o |> Some |> box else o)
-    | Choice2Of2 msg -> Choice2Of2 (sprintf "Error occured when deserializing value \"%s\" of type %A. Exception message: %s" str t msg)
+let private deserialize (d: IDictionary<Type, string -> obj>) (resultType: Type) (str: string) : Choice<obj, string> = 
+  if d.ContainsKey(resultType) then 
+    match applyDeserializer d.[resultType] str with
+    | Choice1Of2 o -> Choice1Of2 o
+    | Choice2Of2 msg -> Choice2Of2 (sprintf "Error occured when deserializing value \"%s\" of type %A. Exception message: %s" str resultType msg)
   else
     Choice2Of2 (sprintf "There is no registered deserializer for type %A" resultType)
 
+let private optionDecor (dFac: DeserializerFactory) (d: IDictionary<Type, string -> obj>) (resultType: Type) (str: string) : Choice<obj, string> =  
+  let isOpt = isOption resultType
+  if isOpt && String.IsNullOrEmpty(str) then
+    None |> box |> Choice1Of2
+  else
+    let t = if isOpt then resultType.GetGenericArguments().[0] else resultType
+    dFac d t str
+    |> Choice.map (fun o -> if isOpt then o |> Some |> box else o)
+
+let fromString : DeserializerFactory = optionDecor deserialize
+
 let private createRecordFormQuery (deserializer: Deserializer) (q: QueryParams) (t: Type) : Choice<obj, string> = 
+  let recordFields = FSharpType.GetRecordFields t
   let fieldsResult = 
-    FSharpType.GetRecordFields t
+    recordFields
     |> List.ofArray
     |> List.filter (fun i -> q.ContainsKey(i.Name) && q.[i.Name].IsSome)
     |> List.map (fun i -> i.Name, deserializer i.PropertyType q.[i.Name].Value)

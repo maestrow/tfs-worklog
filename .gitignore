@@ -1,5 +1,6 @@
 .paket
 .vscode
+paket-files
 packages
 bin
 obj

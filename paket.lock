@@ -19,3 +19,6 @@ NUGET
       FSharp.Core (>= 4.0.0.1)
       Suave (>= 2.1.1)
     Unquote (3.2)
+GITHUB
+  remote: haf/YoLo
+    YoLo.fs (2ae49ac885e2f42812edbaa2dbc8d0e872653cab)

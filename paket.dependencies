@@ -8,3 +8,4 @@ nuget FSharp.Data
 nuget Suave
 nuget Suave.DotLiquid
 nuget Unquote
+github haf/YoLo YoLo.fs
