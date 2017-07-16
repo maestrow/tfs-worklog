@@ -17,17 +17,29 @@ module private Internals =
 
 open Internals
 
+type Format = 
+  | Html
+  | Csv
+  with
+    static member FromString = function
+      | "html" -> Format.Html
+      | "csv" -> Format.Csv
+      | s -> invalidArg "format" (sprintf "invalid format parameter \"%s\"" s)
+    override v.ToString () = (function Html -> "html" | Csv -> "csv") v
+
 let setTemplatesDir dir =
   templatesDir <- Some dir
 
-let render relPath data = renderPageFile (getFullPath relPath) data
+let renderTpl relPath data = renderPageFile (getFullPath relPath) data
 
-let commitInfo (data: CommitInfo) =
-  render "commitInfo.liquid" data
+let renderFmt (fmt: Format) tplName data = renderTpl (sprintf "%s.%s.liquid" tplName (fmt.ToString())) data
 
-let main (data: Activities) = 
+let commitInfo (fmt: Format) (data: CommitInfo) =
+  renderFmt fmt "commitInfo" data
+
+let main (fmt: Format) (data: Activities) = 
   data
   |> List.choose (function | Commit commit -> Some commit | _ -> None)
-  |> List.map (commitInfo >> Async.RunSynchronously)
-  |> render "commits.liquid"
+  |> List.map (commitInfo fmt >> Async.RunSynchronously)
+  |> renderFmt fmt "commits"
 

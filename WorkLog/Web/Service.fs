@@ -4,6 +4,7 @@ open System
 open System.Text.RegularExpressions
 open Suave
 open Suave.Successful
+open Suave.Writers
 open Suave.Filters
 open Suave.Operators
 open Suave.Utils
@@ -29,12 +30,17 @@ module private Internals =
   let renderError (errors: string list) = 
     errors |> String.concat "\n\n" |> OK
 
-  let commitsAction repoParams commitsParams = 
+  let commitsAction repoParams commitsParams format = 
+    let mime = 
+      match format with
+      | Renderers.Format.Html -> "text/html"
+      | Renderers.Csv -> "application/zip"
+      |> setMimeType
     Logic.Commits.getCommits repoParams commitsParams
     |> List.map (fun ci -> Commit ci)
-    |> Renderers.main
+    |> Renderers.main format
     |> Async.RunSynchronously
-    |> OK
+    |> (fun s -> mime >=> OK s)
 
 open Internals
 
@@ -45,8 +51,9 @@ let getParamsFromQuery (request: HttpRequest) =
     |> function
         | Choice2Of2 errors -> errors |> renderError
         | Choice1Of2 objs -> 
+          let format = request.query ^^ "format" |> Choice.orDefault "html" |> Renderers.Format.FromString
           let repoParams = objs.[0] :?> RepoParams
           let commitsParams = objs.[1] :?> CommitsParams
-          commitsAction repoParams commitsParams
+          commitsAction repoParams commitsParams format
 
-let testAction1 () = Renderers.main (generateActivities())
+let testAction1 () = Renderers.main Renderers.Format.Html (generateActivities())
