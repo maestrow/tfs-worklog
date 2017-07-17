@@ -1,7 +1,12 @@
 module Web.Service
 
 open System
+open System.IO
+open System.Text
 open System.Text.RegularExpressions
+open System.Xml
+open System.Linq
+open System.Runtime.Serialization
 open Suave
 open Suave.Successful
 open Suave.Writers
@@ -30,21 +35,82 @@ module private Internals =
   let renderError (errors: string list) = 
     errors |> String.concat "\n\n" |> OK
 
-  let commitsAction repoParams commitsParams format = 
+  let renderCommits (commits: CommitInfo list) format = 
     let mime = 
       match format with
       | Renderers.Format.Html -> "text/html"
-      | Renderers.Csv -> "application/zip"
+      | Renderers.Csv -> "application/octet-stream"
       |> setMimeType
-    Logic.Commits.getCommits repoParams commitsParams
+    commits
     |> List.map (fun ci -> Commit ci)
     |> Renderers.main format
     |> Async.RunSynchronously
     |> (fun s -> mime >=> OK s)
 
+
+module Xml = 
+
+  type [<DataContract>] CommitInfoXml = { 
+    [<field: DataMember(Name="id") >]
+    id: string
+    [<field: DataMember(Name="date") >]
+    date: string 
+    [<field: DataMember(Name="issueUrl") >]
+    issueUrl: string
+    [<field: DataMember(Name="issueId") >]
+    issueId: int
+    [<field: DataMember(Name="message") >]
+    message: string
+    [<field: DataMember(Name="url") >]
+    url: string 
+  }
+
+  let mapCommitInfo (src: CommitInfo) : CommitInfoXml = 
+    {
+      CommitInfoXml.id = src.id
+      date = src.date.ToString("dd.MM.yyyy HH:mm:ss")
+      issueUrl = src.issueUrl
+      issueId = src.issueId
+      message = src.message
+      url = src.url
+    }
+
+  let serializeToXml (o: obj) : string = 
+    let sb = new StringBuilder()
+    let xmlSerializer = DataContractSerializer(o.GetType())
+    xmlSerializer.WriteObject(new XmlTextWriter(new StringWriter(sb)), o)
+    sb.ToString()
+
+  let renderXml commits = 
+    let header = setHeader "Content-Disposition" "attachment; filename=\"commits.xml\""
+    commits
+    |> List.map mapCommitInfo
+    |> Array.ofList
+    |> serializeToXml
+    |> (fun s -> header >=> OK s)
+
+module XmlBase = 
+  let getXmlWriter (stream: Stream) = 
+    //let utf8noBOM = new UTF8Encoding(false)
+    let settings = new XmlWriterSettings()
+    settings.Indent <- true
+    settings.Encoding <- Encoding.UTF8  
+    //settings.OmitXmlDeclaration <- true
+    XmlWriter.Create(stream, settings)
+    
+  let streamToString (stream: Stream) = 
+    stream.Position <- int64 0
+    use sr = new StreamReader(stream)
+    sr.ReadToEnd()
+
+  let getResultFromStream (streamWriter: Stream -> unit) = 
+    use stream = new MemoryStream ()
+    streamWriter stream
+    streamToString stream
+
 open Internals
 
-let getParamsFromQuery (request: HttpRequest) = 
+let commitsAction (request: HttpRequest) = 
     let deserializerFn = D.deserializers |> dict |> D.fromString
     [typeof<RepoParams>; typeof<CommitsParams>] 
     |> D.getParamsFromQuery deserializerFn (request.query |> dict)
@@ -54,6 +120,17 @@ let getParamsFromQuery (request: HttpRequest) =
           let format = request.query ^^ "format" |> Choice.orDefault "html" |> Renderers.Format.FromString
           let repoParams = objs.[0] :?> RepoParams
           let commitsParams = objs.[1] :?> CommitsParams
-          commitsAction repoParams commitsParams format
+          let commits = Logic.Commits.getCommits repoParams commitsParams
+          match format with
+          | Renderers.Format.Xml -> Xml.renderXml commits
+          | _ -> renderCommits commits format
+          
+let commitsXsd =
+  let exporter = XsdDataContractExporter()
+  exporter.Export(typeof<Xml.CommitInfoXml array>)
+  let schemas = exporter.Schemas.Schemas().Cast<Schema.XmlSchema>() |> Array.ofSeq
+  let schema = schemas.[1]
+  fun s -> s |> XmlBase.getXmlWriter |> schema.Write
+  |> XmlBase.getResultFromStream 
 
 let testAction1 () = Renderers.main Renderers.Format.Html (generateActivities())

@@ -7,5 +7,6 @@ nuget FSharp.Core
 nuget FSharp.Data
 nuget Suave
 nuget Suave.DotLiquid
+nuget System.Runtime.Serialization.Xml
 nuget Unquote
 github haf/YoLo YoLo.fs

@@ -18,6 +18,9 @@ NUGET
       DotLiquid (>= 2.0.64)
       FSharp.Core (>= 4.0.0.1)
       Suave (>= 2.1.1)
+    System.Runtime.Serialization.Primitives (4.3) - restriction: || (&& (>= net40) (< net45) (>= netstandard1.3)) (&& (>= net40) (>= dnxcore50)) (>= net46)
+    System.Runtime.Serialization.Xml (4.3)
+      System.Runtime.Serialization.Primitives (>= 4.3) - restriction: || (&& (>= net40) (< net45) (>= netstandard1.3)) (&& (>= net40) (>= dnxcore50)) (>= net46)
     Unquote (3.2)
 GITHUB
   remote: haf/YoLo

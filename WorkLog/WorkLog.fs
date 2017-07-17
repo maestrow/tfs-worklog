@@ -9,6 +9,7 @@ open Suave.Filters
 open Suave.Operators
 open Suave.Utils
 open Suave.DotLiquid
+open Suave.Writers
 open DotLiquid
 
 open Web.Service
@@ -26,7 +27,8 @@ let render str =
 let app : WebPart =
   choose [ 
     path "/" >=> ("welcome.liquid" |> flip Web.Renderers.renderTpl () |> render)
-    path "/commits" >=> request getParamsFromQuery
+    path "/commits/xsd" >=> setHeader "Content-Disposition" "attachment; filename=\"commits.xsd\"" >=> OK commitsXsd
+    path "/commits" >=> request commitsAction
     path "/test1" >=> render (testAction1())
   ]
 

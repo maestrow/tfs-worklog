@@ -4,3 +4,4 @@ FSharp.Data
 Suave
 FsCheck
 Suave.DotLiquid
+System.Runtime.Serialization.Xml
