@@ -11,12 +11,16 @@ module Generators =
 
   let createCommitInfo id date issueId message = 
     { 
-      id = id
+      CommitInfo.id = id
       date = date
-      issueUrl = "http://example.com"
       issueId = issueId
       message = message
-      url = CommitInfo.GetUrl id
+
+      schema = "https"
+      host = "tfs.sample.org"
+      collection = "Collection"
+      project = "Project"
+      repoId = "repoid"
     }
 
   let createMessageGen path (n: Gen<int>) : Gen<string> =
@@ -60,6 +64,7 @@ module Generators =
       (Gen.intRange 1 3)
 
   let generateCommitInfo d =
+    
     createCommitInfo (Gen.guid() |> string) d (issueId()) (message ())
 
 

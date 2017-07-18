@@ -12,7 +12,7 @@ open FSharp.Data
 open Utils.Reflection
 open Domain.Settings
 open Domain.Tfs
-open Logic.TfsUrlTemplates
+open TfsUrlTemplates
 open Logic.TfsRequest
 open Web.ViewModels
 
@@ -43,27 +43,35 @@ module private Implementation =
     | false -> -1
     
 
-  let getCommitInfoFromShortJsonObj (jsonObj: TfsCommits.Value) =
+  let getCommitInfoFromShortJsonObj (repoParams: RepoParams) (jsonObj: TfsCommits.Value) =
     let issueId = getIssueIdFromComment jsonObj.Comment
     { 
       CommitInfo.id = jsonObj.CommitId 
       date = jsonObj.Committer.Date 
-      issueUrl = "http://example.com"
       issueId = issueId 
       message = jsonObj.Comment 
-      url = jsonObj.Url 
+
+      schema = settings.ServiceUrl.Schema
+      host = settings.ServiceUrl.Host
+      collection = repoParams.collection
+      project = repoParams.project
+      repoId = repoParams.repoId
     }
 
   // ToDo: set constraint and remove duplicate function definition
-  let getCommitInfoFromDetailedJsonObj (jsonObj: TfsCommitDetails.Root) = 
+  let getCommitInfoFromDetailedJsonObj (repoParams: RepoParams) (jsonObj: TfsCommitDetails.Root) = 
     let issueId = getIssueIdFromComment jsonObj.Comment
     { 
       CommitInfo.id = jsonObj.CommitId 
       date = jsonObj.Committer.Date 
-      issueUrl = "http://example.com"
       issueId = issueId 
       message = jsonObj.Comment 
-      url = jsonObj.Url 
+
+      schema = settings.ServiceUrl.Schema
+      host = settings.ServiceUrl.Host
+      collection = repoParams.collection
+      project = repoParams.project
+      repoId = repoParams.repoId
     }
 
   let rxTrimMsg = Regex "Related Work Items: #\d+$" 
@@ -92,7 +100,7 @@ let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
 
   let notTruncated = 
     commits.[false]
-    |> List.map getCommitInfoFromShortJsonObj
+    |> List.map (getCommitInfoFromShortJsonObj repoParams)
   
   let truncated = 
     
@@ -100,7 +108,7 @@ let getCommits (repoParams: RepoParams) (commitsParams: CommitsParams) =
       fun (c: TfsCommits.Value) -> c.CommitId
       >> commitDetailsCache getCommitDetails
       >> TfsCommitDetails.Parse
-      >> getCommitInfoFromDetailedJsonObj
+      >> getCommitInfoFromDetailedJsonObj repoParams
     commits.[true] |> List.map mapFn
 
   [notTruncated; truncated] 

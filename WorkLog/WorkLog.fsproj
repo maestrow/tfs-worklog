@@ -50,10 +50,10 @@
     <Compile Include="Extensions.fs" />
     <Compile Include="Domain/Settings.fs" />
     <Compile Include="Domain/Tfs.fs" />
+    <Compile Include="TfsUrlTemplates.fs" />
     <Compile Include="ViewModels.fs" />
     <Compile Include="TestData.fs" />
     <Compile Include="Logic/TfsRequest.fs" />
-    <Compile Include="Logic/TfsUrlTemplates.fs" />
     <Compile Include="Logic/Commits.fs" />
     <Compile Include="Web/Renderers.fs" />
     <Compile Include="Web/Service.fs" />

@@ -37,7 +37,7 @@ let renderTpl relPath data = renderPageFile (getFullPath relPath) data
 let renderFmt (fmt: Format) tplName data = renderTpl (sprintf "%s.%s.liquid" tplName (fmt.ToString())) data
 
 let commitInfo (fmt: Format) (data: CommitInfo) =
-  renderFmt fmt "commitInfo" data
+  renderFmt fmt "commitInfo" (data |> mapCommitInfo)
 
 let main (fmt: Format) (data: Activities) = 
   data

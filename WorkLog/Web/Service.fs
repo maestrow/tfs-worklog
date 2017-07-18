@@ -17,7 +17,7 @@ open Suave.DotLiquid
 open Utils.SuaveHelpers
 
 open Logic.Commits
-open Logic.TfsUrlTemplates
+open TfsUrlTemplates
 open Web.ViewModels
 
 open TestData
@@ -49,31 +49,6 @@ module private Internals =
 
 
 module Xml = 
-
-  type [<DataContract>] CommitInfoXml = { 
-    [<field: DataMember(Name="id") >]
-    id: string
-    [<field: DataMember(Name="date") >]
-    date: string 
-    [<field: DataMember(Name="issueUrl") >]
-    issueUrl: string
-    [<field: DataMember(Name="issueId") >]
-    issueId: int
-    [<field: DataMember(Name="message") >]
-    message: string
-    [<field: DataMember(Name="url") >]
-    url: string 
-  }
-
-  let mapCommitInfo (src: CommitInfo) : CommitInfoXml = 
-    {
-      CommitInfoXml.id = src.id
-      date = src.date.ToString("dd.MM.yyyy HH:mm:ss")
-      issueUrl = src.issueUrl
-      issueId = src.issueId
-      message = src.message
-      url = src.url
-    }
 
   let serializeToXml (o: obj) : string = 
     let sb = new StringBuilder()
@@ -127,7 +102,7 @@ let commitsAction (request: HttpRequest) =
           
 let commitsXsd =
   let exporter = XsdDataContractExporter()
-  exporter.Export(typeof<Xml.CommitInfoXml array>)
+  exporter.Export(typeof<CommitInfoXml array>)
   let schemas = exporter.Schemas.Schemas().Cast<Schema.XmlSchema>() |> Array.ofSeq
   let schema = schemas.[1]
   fun s -> s |> XmlBase.getXmlWriter |> schema.Write

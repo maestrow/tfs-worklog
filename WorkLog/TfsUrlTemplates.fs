@@ -1,4 +1,4 @@
-module Logic.TfsUrlTemplates
+module TfsUrlTemplates
 
 open System
 open FSharp.Reflection
@@ -59,4 +59,7 @@ module Tpl =
 
 module TplUi = 
   let task = baseUrl1 <| fun taskId ->
-    sprintf "_workitems/edit/%s" taskId
+    sprintf "_workitems/edit/%i" taskId
+
+  let commit = baseUrl2 <| fun repoId commitId ->
+    sprintf "_git/%s/commit/%s" repoId commitId
