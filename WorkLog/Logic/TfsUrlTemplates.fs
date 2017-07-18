@@ -12,6 +12,26 @@ module private Internals =
     | :? DateTime as dt -> dt.ToString("yyyy-MM-dd")
     | _ -> value.ToString()
 
+  let getBaseUrl schema host collection project =
+    sprintf "%s://%s/%s/%s/" schema host collection project
+
+  let baseUrl (res: string) = 
+    fun a b c d -> 
+      (getBaseUrl a b c d) + res
+
+  let baseUrl1 fn = 
+    fun a b c d e -> 
+      (getBaseUrl a b c d) + (fn e)
+
+  let baseUrl2 fn = 
+    fun a b c d e f -> 
+      (getBaseUrl a b c d) + (fn e f)
+
+  let baseUrl3 fn = 
+    fun a b c d e f g -> 
+      (getBaseUrl a b c d) + (fn e f g)
+
+
 open Internals
 
 type CommitsParams = {
@@ -23,30 +43,20 @@ type CommitsParams = {
 
 module Tpl = 
 
-  let repositories schema host collection project = 
-    sprintf
-      "%s://%s/%s/%s/_apis/git/repositories"
-      schema
-      host
-      collection
-      project
+  let repositories = baseUrl "_apis/git/repositories"
 
-  let commitDetails schema host collection project repoId commitId = 
+  let commitDetails = baseUrl2 <| fun repoId commitId ->
     sprintf 
-      "%s://%s/%s/%s/_apis/git/repositories/%s/commits/%s" 
-      schema
-      host
-      collection
-      project
+      "_apis/git/repositories/%s/commits/%s" 
       repoId
       commitId
 
-  let commits schema host collection project repoId (parameters: CommitsParams) = 
+  let commits = baseUrl2 <| fun repoId (parameters: CommitsParams) ->
     sprintf 
-      "%s://%s/%s/%s/_apis/git/repositories/%s/commits?%s" 
-      schema
-      host
-      collection
-      project
+      "_apis/git/repositories/%s/commits?%s" 
       repoId
       (toUrl toString parameters)
+
+module TplUi = 
+  let task = baseUrl1 <| fun taskId ->
+    sprintf "_workitems/edit/%s" taskId
