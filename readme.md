@@ -12,6 +12,7 @@
 - дизайн списка коммитов + копирование в буфер
 - отладка в VSCode
 - Доработать Suave.DotLiquid, чтобы он мог рендерить значения свойств записи (объявленные через with member).
+- DotLiquid Whitespace control does not work (it only works with LF, not with CRLF)
 
 
 ## Links

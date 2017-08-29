@@ -36,15 +36,19 @@ module private Internals =
     errors |> String.concat "\n\n" |> OK
 
   let renderCommits (commits: CommitInfo list) format = 
+    let rx = new Regex "\n+"
     let mime = 
       match format with
       | Renderers.Format.Html -> "text/html"
-      | Renderers.Csv -> "application/octet-stream"
+      | Renderers.Format.Txt -> "application/octet-stream"
       |> setMimeType
     commits
     |> List.map (fun ci -> Commit ci)
     |> Renderers.main format
     |> Async.RunSynchronously
+    |> fun s -> match format with
+                | Renderers.Format.Txt -> rx.Replace (s, "\n")
+                | _ -> s
     |> (fun s -> mime >=> OK s)
 
 

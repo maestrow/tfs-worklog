@@ -41,7 +41,10 @@ module private Implementation =
     match m.Success with
     | true -> m.Groups.[1].Value |> int
     | false -> -1
-    
+
+  let formatMessage s = 
+    let rx = Regex "\n+"    
+    rx.Replace(s, " ")
 
   let getCommitInfoFromShortJsonObj (repoParams: RepoParams) (jsonObj: TfsCommits.Value) =
     let issueId = getIssueIdFromComment jsonObj.Comment
@@ -49,7 +52,7 @@ module private Implementation =
       CommitInfo.id = jsonObj.CommitId 
       date = jsonObj.Committer.Date 
       issueId = issueId 
-      message = jsonObj.Comment 
+      message = formatMessage jsonObj.Comment 
 
       schema = settings.ServiceUrl.Schema
       host = settings.ServiceUrl.Host
@@ -65,7 +68,7 @@ module private Implementation =
       CommitInfo.id = jsonObj.CommitId 
       date = jsonObj.Committer.Date 
       issueId = issueId 
-      message = jsonObj.Comment 
+      message = formatMessage jsonObj.Comment 
 
       schema = settings.ServiceUrl.Schema
       host = settings.ServiceUrl.Host

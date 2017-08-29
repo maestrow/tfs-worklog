@@ -19,15 +19,15 @@ open Internals
 
 type Format = 
   | Html
-  | Csv
+  | Txt
   | Xml
   with
     static member FromString = function
       | "html" -> Format.Html
-      | "csv" -> Format.Csv
+      | "txt" -> Format.Txt
       | "xml" -> Format.Xml
       | s -> invalidArg "format" (sprintf "invalid format parameter \"%s\"" s)
-    override v.ToString () = (function Html -> "html" | Csv -> "csv" | Xml -> "xml") v
+    override v.ToString () = (function Html -> "html" | Txt -> "txt" | Xml -> "xml") v
 
 let setTemplatesDir dir =
   templatesDir <- Some dir
